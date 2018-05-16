@@ -1,0 +1,29 @@
+
+CC := g++ 
+SRCDIR := src
+BUILDDIR := build
+
+TARGETS=myTest #main  # hello suites fixtures assertions
+SRCEXT := cpp
+SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
+OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
+CFLAGS := -g # -Wall
+INC := -I include
+
+$(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
+	@mkdir -p $(BUILDDIR)
+	@echo " $(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
+
+all: $(TARGETS)
+
+test: $(TARGETS) $(addprefix run-,$(TARGETS))
+
+%: test/%.cpp
+	@echo "My file is $@"
+	$(CXX) -o$@ $^ -lboost_unit_test_framework $(INC) $(LIB) -o binTest/$@
+
+run-%: %
+	-./$^ --output_format=XML --log_level=test_suite > $(^)-report.xml
+
+clean:
+	rm $(TARGETS) *-report.xml
